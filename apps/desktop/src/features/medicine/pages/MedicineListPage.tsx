@@ -21,11 +21,12 @@ const MedicineListPage = () => {
   const { medicines, loading } = useMedicines();
 
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleEdit = (medicine: Medicine) => {
     navigate(`/medicines/${medicine.id}/edit`);
   };
-
+  const PAGE_SIZE = 10;
   const handleDelete = async (medicine: Medicine) => {
     const confirmed = window.confirm(`Delete "${medicine.medicineName}"?`);
 
@@ -56,6 +57,11 @@ const MedicineListPage = () => {
         .some((value) => value!.toLowerCase().includes(keyword)),
     );
   }, [medicines, search]);
+  const paginatedMedicines = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+
+    return filteredMedicines.slice(start, start + PAGE_SIZE);
+  }, [filteredMedicines, currentPage]);
 
   return (
     <>
@@ -96,11 +102,15 @@ const MedicineListPage = () => {
               onEdit: handleEdit,
               onDelete: handleDelete,
             })}
-            data={filteredMedicines}
+            data={paginatedMedicines}
             rowKey={(medicine) => medicine.id}
             loading={loading}
             emptyMessage="No medicines found."
             showSerialNumber
+            currentPage={currentPage}
+            pageSize={PAGE_SIZE}
+            totalRecords={filteredMedicines.length}
+            onPageChange={setCurrentPage}
           />
         )}
       </Card>

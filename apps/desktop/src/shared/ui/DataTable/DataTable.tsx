@@ -1,14 +1,22 @@
 import type { Key } from "react";
+import { Button } from "../index";
 import type { Column } from "./types";
 
 type DataTableProps<T> = {
   columns: Column<T>[];
   data: T[];
   rowKey?: (row: T) => Key;
+
   loading?: boolean;
   emptyMessage?: string;
   className?: string;
+
   showSerialNumber?: boolean;
+
+  currentPage?: number;
+  pageSize?: number;
+  totalRecords?: number;
+  onPageChange?: (page: number) => void;
 };
 
 function DataTable<T extends Record<string, any>>({
@@ -19,8 +27,15 @@ function DataTable<T extends Record<string, any>>({
   emptyMessage = "No records found.",
   className = "",
   showSerialNumber = true,
+
+  currentPage = 1,
+  pageSize = 10,
+  totalRecords = data.length,
+  onPageChange,
 }: DataTableProps<T>) {
   const totalColumns = columns.length + (showSerialNumber ? 1 : 0);
+
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   const getAlignment = (align?: "left" | "center" | "right") => {
     switch (align) {
@@ -99,7 +114,7 @@ function DataTable<T extends Record<string, any>>({
                 >
                   {showSerialNumber && (
                     <td className="px-4 py-4 text-center text-sm font-medium text-slate-600">
-                      {index + 1}
+                      {(currentPage - 1) * pageSize + index + 1}
                     </td>
                   )}
 
@@ -123,6 +138,49 @@ function DataTable<T extends Record<string, any>>({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
+          <p className="text-sm text-slate-500">
+            Showing {(currentPage - 1) * pageSize + 1} -{" "}
+            {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords}{" "}
+            records
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              disabled={currentPage === 1}
+              onClick={() => onPageChange?.(currentPage - 1)}
+            >
+              Previous
+            </Button>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index}
+                onClick={() => onPageChange?.(index + 1)}
+                className={`h-9 w-9 rounded-lg border text-sm font-medium transition ${
+                  currentPage === index + 1
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <Button
+              variant="secondary"
+              disabled={currentPage === totalPages}
+              onClick={() => onPageChange?.(currentPage + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

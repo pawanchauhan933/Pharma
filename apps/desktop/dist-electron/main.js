@@ -52,7 +52,12 @@ const IPC_CHANNELS = {
   MEDICINE_LIST: "medicine:list",
   MEDICINE_GET_BY_ID: "medicine:getById",
   MEDICINE_UPDATE: "medicine:update",
-  MEDICINE_DELETE: "medicine:delete"
+  MEDICINE_DELETE: "medicine:delete",
+  MANUFACTURER_CREATE: "manufacturer:create",
+  MANUFACTURER_LIST: "manufacturer:list",
+  MANUFACTURER_GET_BY_ID: "manufacturer:getById",
+  MANUFACTURER_UPDATE: "manufacturer:update",
+  MANUFACTURER_DELETE: "manufacturer:delete"
 };
 class MedicineRepository {
   constructor() {
@@ -168,6 +173,13 @@ class MedicineRepository {
       updatedAt: (/* @__PURE__ */ new Date()).toISOString()
     });
   }
+  delete(id) {
+    const stmt = this.db.prepare(`
+    DELETE FROM medicines
+    WHERE id = ?
+  `);
+    stmt.run(id);
+  }
 }
 class MedicineService {
   constructor() {
@@ -219,6 +231,166 @@ function registerMedicineIpc() {
   });
   electron.ipcMain.handle(IPC_CHANNELS.MEDICINE_DELETE, (_, id) => {
     medicineService.deleteMedicine(id);
+  });
+}
+class ManufacturerRepository {
+  constructor() {
+    __publicField(this, "db", getDatabase());
+  }
+  create(data) {
+    const stmt = this.db.prepare(`
+      INSERT INTO manufacturers (
+        name,
+        contact_person,
+        phone,
+        email,
+        address,
+        description,
+        active,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        @name,
+        @contactPerson,
+        @phone,
+        @email,
+        @address,
+        @description,
+        @active,
+        @createdAt,
+        @updatedAt
+      )
+    `);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const result = stmt.run({
+      ...data,
+      active: data.active ? 1 : 0,
+      createdAt: now,
+      updatedAt: now
+    });
+    return Number(result.lastInsertRowid);
+  }
+  findAll() {
+    return this.db.prepare(
+      `
+        SELECT
+          id,
+          name,
+          contact_person AS contactPerson,
+          phone,
+          email,
+          address,
+          description,
+          active,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+        FROM manufacturers
+        ORDER BY name
+      `
+    ).all();
+  }
+  findById(id) {
+    return this.db.prepare(
+      `
+        SELECT
+          id,
+          name,
+          contact_person AS contactPerson,
+          phone,
+          email,
+          address,
+          description,
+          active,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+        FROM manufacturers
+        WHERE id = ?
+      `
+    ).get(id);
+  }
+  update(id, data) {
+    const stmt = this.db.prepare(`
+      UPDATE manufacturers
+      SET
+        name = @name,
+        contact_person = @contactPerson,
+        phone = @phone,
+        email = @email,
+        address = @address,
+        description = @description,
+        active = @active,
+        updated_at = @updatedAt
+      WHERE id = @id
+    `);
+    stmt.run({
+      id,
+      ...data,
+      active: data.active ? 1 : 0,
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  delete(id) {
+    this.db.prepare(
+      `
+        DELETE FROM manufacturers
+        WHERE id = ?
+      `
+    ).run(id);
+  }
+}
+class ManufacturerService {
+  constructor() {
+    __publicField(this, "repository", new ManufacturerRepository());
+  }
+  create(data) {
+    this.validate(data);
+    return this.repository.create(data);
+  }
+  update(id, data) {
+    this.validate(data);
+    this.repository.update(id, data);
+  }
+  getAll() {
+    return this.repository.findAll();
+  }
+  getById(id) {
+    const manufacturer = this.repository.findById(id);
+    if (!manufacturer) {
+      throw new Error("Manufacturer not found.");
+    }
+    return manufacturer;
+  }
+  delete(id) {
+    this.repository.delete(id);
+  }
+  validate(data) {
+    if (!data.name.trim()) {
+      throw new Error("Manufacturer name is required.");
+    }
+  }
+}
+const manufacturerService = new ManufacturerService();
+function registerManufacturerIpc() {
+  electron.ipcMain.handle(IPC_CHANNELS.MANUFACTURER_CREATE, (_, data) => {
+    return manufacturerService.create(data);
+  });
+  electron.ipcMain.handle(IPC_CHANNELS.MANUFACTURER_LIST, () => {
+    return manufacturerService.getAll();
+  });
+  electron.ipcMain.handle(IPC_CHANNELS.MANUFACTURER_GET_BY_ID, (_, id) => {
+    return manufacturerService.getById(id);
+  });
+  electron.ipcMain.handle(
+    IPC_CHANNELS.MANUFACTURER_UPDATE,
+    (_, id, data) => {
+      manufacturerService.update(id, data);
+      return true;
+    }
+  );
+  electron.ipcMain.handle(IPC_CHANNELS.MANUFACTURER_DELETE, (_, id) => {
+    manufacturerService.delete(id);
+    return true;
   });
 }
 const __dirname$1 = path.dirname(node_url.fileURLToPath(typeof document === "undefined" ? require("url").pathToFileURL(__filename).href : _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("main.js", document.baseURI).href));
@@ -274,6 +446,7 @@ electron.app.whenReady().then(async () => {
     console.log("Migrations path:", migrationsPath);
     runMigrations(migrationsPath);
     registerMedicineIpc();
+    registerManufacturerIpc();
     createWindow();
   } catch (err) {
     console.error("===== STARTUP ERROR =====");

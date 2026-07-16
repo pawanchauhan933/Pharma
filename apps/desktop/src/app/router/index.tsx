@@ -11,6 +11,9 @@ import MedicineListPage from "../../features/medicine/pages/MedicineListPage";
 import AddMedicinePage from "../../features/medicine/pages/AddMedicinePage";
 import { ROUTES } from "../../shared/constants/routes";
 import EditMedicinePage from "../../features/medicine/pages/EditMedicinePage";
+import ManufacturerListPage from "../../features/manufacturer/pages/ManufacturerListPage";
+import AddManufacturerPage from "../../features/manufacturer/pages/AddManufacturerPage";
+import EditManufacturerPage from "../../features/manufacturer/pages/EditManufacturerPage";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -37,14 +40,18 @@ export const router = createBrowserRouter([
         path: ROUTES.EDIT_MEDICINE,
         element: <EditMedicinePage />,
       },
-      //       {
-      //   path: `${ROUTES.MEDICINES}/:id`,
-      //   element: <MedicineDetailsPage />,
-      // },
-      // {
-      //   path: `${ROUTES.MEDICINES}/:id/edit`,
-      //   element: <EditMedicinePage />,
-      // },
+      {
+        path: ROUTES.LIST_MANUFACTURER,
+        element: <ManufacturerListPage />,
+      },
+      {
+        path: ROUTES.ADD_MANUFACTURER,
+        element: <AddManufacturerPage />,
+      },
+      {
+        path: ROUTES.EDIT_MANUFACTURER,
+        element: <EditManufacturerPage />,
+      },
       {
         path: ROUTES.INVENTORY,
         element: <InventoryPage />,

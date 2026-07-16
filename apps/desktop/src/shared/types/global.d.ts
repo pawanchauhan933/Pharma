@@ -12,6 +12,13 @@ declare global {
         update: (id: number, data: CreateMedicineDto) => Promise<void>;
         delete: (id: number) => Promise<void>;
       };
+      manufacturer: {
+        create: (data: CreateManufacturerDto) => Promise<number>;
+        getAll: () => Promise<any[]>;
+        getById: (id: number) => Promise<any>;
+        update: (id: number, data: CreateManufacturerDto) => Promise<void>;
+        delete: (id: number) => Promise<void>;
+      };
     };
   }
 }

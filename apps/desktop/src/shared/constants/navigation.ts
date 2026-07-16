@@ -6,6 +6,7 @@ import {
   BanknotesIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  BuildingOffice2Icon
 } from "@heroicons/react/24/outline";
 
 import { ROUTES } from "./routes";
@@ -40,6 +41,11 @@ export const navigation = [
     name: "Reports",
     path: ROUTES.REPORTS,
     icon: ChartBarIcon,
+  },
+  {
+    name: "Manufacturers",
+    path: ROUTES.LIST_MANUFACTURER,
+    icon: BuildingOffice2Icon,
   },
   {
     name: "Settings",

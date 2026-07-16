@@ -6,6 +6,7 @@ import { runMigrations } from "../src/backend/database/migrate";
 // const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { registerMedicineIpc } from "../src/backend/medicine/medicine.ipc";
+import { registerManufacturerIpc } from "../src/backend/manufacturer/manufacturer.ipc";
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -92,7 +93,7 @@ app.whenReady().then(async () => {
 
     runMigrations(migrationsPath);
     registerMedicineIpc();
-
+    registerManufacturerIpc();
     createWindow();
   } catch (err) {
     console.error("===== STARTUP ERROR =====");
